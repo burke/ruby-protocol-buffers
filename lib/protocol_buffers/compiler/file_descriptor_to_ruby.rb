@@ -41,6 +41,10 @@ HEADER
       descriptor.message_type.each do |message|
         dump_message(message)
       end
+
+      descriptor.service.each do |service|
+        dump_service(service)
+      end
     end
     
   end
@@ -118,6 +122,17 @@ HEADER
     TYPE_SINT32 => ":sint32",
     TYPE_SINT64 => ":sint64",
   }
+
+  def dump_service(service)
+    in_namespace("class", service.name, " < ::ProtocolBuffers::Service") do
+      service.method.each do |meth|
+        itype = meth.input_type.split(".").map { |t| camelize(t) }.join("::")
+        otype = meth.output_type.split(".").map { |t| camelize(t) }.join("::")
+        line "endpoint :#{meth.name}, #{itype}, #{otype}"
+      end
+    end
+    line
+  end
 
   def dump_message(message)
     in_namespace("class", message.name, " < ::ProtocolBuffers::Message") do
